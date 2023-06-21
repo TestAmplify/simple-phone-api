@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 app.use(express.json());
+const path = require('path');
 
 // Sample contacts data
 let contacts = [
@@ -44,8 +45,14 @@ function generateUniqueId() {
 }
 
 // Route handler for the root path ("/")
-app.get('/', (req, res) => {
+/*app.get('/', (req, res) => {
   res.send('Welcome to Simple Phone App!');
+});*/
+
+// Define a route to serve the index.html file
+app.get('/', (req, res) => {
+  const readmePath = path.join(__dirname, 'index.html');
+  res.sendFile(readmePath);
 });
 
 // GET all messages
