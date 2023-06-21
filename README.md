@@ -1,6 +1,6 @@
 API Specification - Simple Phone App
 
-**Base URL:** `http://localhost:3000/`
+**Base URL:** `http://phone-api.testamplify.io/`
 
 **Contacts**
 
