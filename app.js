@@ -3,7 +3,7 @@ const app = express();
 app.use(express.json());
 const auth = require('basic-auth');
 const path = require('path');
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname + '/public')));
 
 // Middleware to handle Basic Authentication
 const authenticate = (req, res, next) => {
