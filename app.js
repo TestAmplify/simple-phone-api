@@ -1,7 +1,20 @@
 const express = require('express');
 const app = express();
 app.use(express.json());
+const auth = require('basic-auth');
 const path = require('path');
+app.use(express.static('public'));
+
+// Middleware to handle Basic Authentication
+const authenticate = (req, res, next) => {
+  const credentials = auth(req);
+  if (!credentials || credentials.name !== 'username' || credentials.pass !== 'password') {
+    res.set('WWW-Authenticate', 'Basic realm="Authorization Required"');
+    res.status(401).send('Unauthorized');
+  } else {
+    next();
+  }
+};
 
 // Sample contacts data
 let contacts = [
@@ -35,6 +48,7 @@ let messages = [
 let favorites = [
   { contactId: 1, name: 'John Doe' },
   { contactId: 3, name: 'Michael Johnson' },
+  { contactId: 5, name: "James Clark" },
   { contactId: 7, name: 'William Clark' }
 ];
 
@@ -44,16 +58,18 @@ function generateUniqueId() {
   return uuidv4();
 }
 
-// Route handler for the root path ("/")
-/*app.get('/', (req, res) => {
-  res.send('Welcome to Simple Phone App!');
-});*/
-
 // Define a route to serve the index.html file
 app.get('/', (req, res) => {
-  const readmePath = path.join(__dirname, 'index.html');
+  const indexPath = path.join(__dirname, 'index.html');
+  res.sendFile(indexPath);
+});
+
+app.get('/readme', (req, res) => {
+  const readmePath = path.join(__dirname, 'readme.html');
   res.sendFile(readmePath);
 });
+
+//==========================MESSAGES============================//
 
 // GET all messages
 app.get('/messages', (req, res) => {
@@ -123,10 +139,31 @@ app.post('/contacts/:id/messages', (req, res) => {
   }
 });
 
+// DELETE a message
+app.delete('/messages/:id', (req, res) => {
+  const messageId = parseInt(req.params.id);
+  
+  // Find the index of the message with the given ID
+  const messageIndex = messages.findIndex(message => message.id === messageId);
+  
+  if (messageIndex !== -1) {
+    // Remove the message from the messages array
+    messages.splice(messageIndex, 1);
+    res.json({ message: 'Message deleted successfully' });
+  } else {
+    res.status(404).json({ message: 'Message not found' });
+  }
+});
+
 //==========================CONTACTS============================//
 
 // GET all contacts
 app.get('/contacts', (req, res) => {
+  res.json({ contacts });
+});
+
+// GET all contacts ater authentication
+app.get('/auth-contacts',authenticate,  (req, res) => {
   res.json({ contacts });
 });
 
@@ -180,23 +217,6 @@ app.patch('/contacts/:id', (req, res) => {
     res.status(404).json({ message: 'Contact not found' });
   }
 });
-
-// DELETE a message
-app.delete('/messages/:id', (req, res) => {
-  const messageId = parseInt(req.params.id);
-  
-  // Find the index of the message with the given ID
-  const messageIndex = messages.findIndex(message => message.id === messageId);
-  
-  if (messageIndex !== -1) {
-    // Remove the message from the messages array
-    messages.splice(messageIndex, 1);
-    res.json({ message: 'Message deleted successfully' });
-  } else {
-    res.status(404).json({ message: 'Message not found' });
-  }
-});
-
 
 // DELETE a contact
 app.delete('/contacts/:id', (req, res) => {
@@ -290,6 +310,57 @@ app.delete('/favorites/:contactId', (req, res) => {
   } else {
     res.status(404).json({ message: 'Favorite not found' });
   }
+});
+
+// Function to validate the app ID
+const isValidAppId = (appId) => {
+  // Perform app ID validation logic here
+  // For example, check if the app ID is present in a database or valid app ID list
+  // Return true if the app ID is valid, false otherwise
+  // You can customize this logic based on your specific requirements
+  const validAppIds = ['your_app_id_1', 'your_app_id_2', 'your_app_id_3'];
+  return validAppIds.includes(appId);
+};
+
+const token_based_authenticate = (req, res, next) => {
+    const appId = req.headers['app-id'];
+    if (!appId || !isValidAppId(appId)) {
+      res.status(401).send('Unauthorized');
+    } else {
+      next();
+    }
+  };
+// GET all contacts ater authentication - api token based
+app.get('/api_token_based_contacts',token_based_authenticate,  (req, res) => {
+  res.json({ contacts });
+});
+
+//Pagination Implementation
+// GET messages with pagination
+app.get('/messages-page', (req, res) => {
+
+  const page = parseInt(req.query.page) || 1; // Get the requested page number from the query parameter
+
+  const limit = parseInt(req.query.limit) || 5; // Get the number of items per page from the query parameter
+  const startIndex = (page - 1) * limit;
+
+  const endIndex = page * limit;
+
+  const paginatedMessages = messages.slice(startIndex, endIndex);
+
+  const totalPages = Math.ceil(messages.length / limit);
+  res.json({
+
+    page,
+
+    limit,
+
+    totalPages,
+
+    messages: paginatedMessages
+
+  });
+
 });
 
 // Starting the server

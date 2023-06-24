@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>README</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      line-height: 1.5;
+    }
+
+    h1 {
+      font-size: 24px;
+    }
+
+    p {
+      margin-bottom: 10px;
+    }
+
+    a {
+      color: #007bff;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+<h1>Welcome to Simple Phone App!</h1>
+  <hr>
+  <h1>README</h1>
+  <pre>
+    API Specification - Simple Phone App
+
+    <a href="http://phone-api.testamplify.io/">Base URL</a> | `http://phone-api.testamplify.io/`
+    
+    **Contacts**
+    
+    - Get All Contacts
+    
+      - Endpoint: `GET /contacts`
+      - Description: Retrieve a list of all contacts.
+      - Response:
+        - Status Code: 200 (OK)
+        - Body: Array of contact objects containing `id`, `name`, and `email` fields.
+    
+    - Get Contact by ID
+    
+      - Endpoint: `GET /contacts/:id`
+      - Description: Retrieve a specific contact by its ID.
+      - Parameters:
+        - `id`: Contact ID (numeric)
+      - Response:
+        - Status Code: 200 (OK)
+        - Body: Contact object containing `id`, `name`, and `email` fields.
+    
+    - Create a New Contact
+    
+      - Endpoint: `POST /contacts`
+      - Description: Create a new contact.
+      - Request Body: JSON object with `name` and `email` fields.
+      - Response:
+        - Status Code: 201 (Created)
+        - Body: Newly created contact object with `id`, `name`, and `email` fields.
+    
+    **Messages**
+    
+    - Get All Messages
+    
+      - Endpoint: `GET /messages`
+      - Description: Retrieve a list of all messages.
+      - Response:
+        - Status Code: 200 (OK)
+        - Body: Array of message objects containing `id`, `sender`, `recipient`, and `content` fields.
+    
+    - Get Message by ID
+    
+      - Endpoint: `GET /messages/:id`
+      - Description: Retrieve a specific message by its ID.
+      - Parameters:
+        - `id`: Message ID (numeric)
+      - Response:
+        - Status Code: 200 (OK)
+        - Body: Message object containing `id`, `sender`, `recipient`, and `content` fields.
+    
+    - Update Message
+    
+      - Endpoint: `PUT /messages/:id`
+      - Description: Update an existing message.
+      - Parameters:
+        - `id`: Message ID (numeric)
+      - Request Body: JSON object with `content` field to update the message content.
+      - Response:
+        - Status Code: 200 (OK)
+        - Body: Updated message object containing `id`, `sender`, `recipient`, and updated `content` field.
+    
+    - Delete Message
+    
+      - Endpoint: `DELETE /messages/:id`
+      - Description: Delete a message by its ID.
+      - Parameters:
+        - `id`: Message ID (numeric)
+      - Response:
+        - Status Code: 204 (No Content)
+    
+    **Favorites**
+    
+    - Get All Favorites
+    
+      - Endpoint: `GET /favorites`
+      - Description: Retrieve a list of all favorite contacts.
+      - Response:
+        - Status Code: 200 (OK)
+        - Body: Array of favorite objects containing `id`, `name`, and `contactId` fields.
+    
+    - Get Favorite by ID
+    
+      - Endpoint: `GET /favorites/:id`
+      - Description: Retrieve a specific favorite contact by its ID.
+      - Parameters:
+        - `id`: Favorite ID (numeric)
+      - Response:
+        - Status Code: 200 (OK)
+        - Body: Favorite object containing `id`, `name`, and `contactId` fields.
+    
+    - Create a New Favorite
+    
+      - Endpoint: `POST /favorites`
+      - Description: Add a contact to the favorites list.
+      - Request Body: JSON object with `name` and `contactId` fields.
+      - Response:
+        - Status Code: 201 (Created)
+        - Body: Newly created favorite object with `id`, `name`, and `contactId` fields.
+    
+    - Update Favorite
+    
+     Name
+    
+      - Endpoint: `PATCH /favorites/:id`
+      - Description: Update the name of a favorite contact.
+      - Parameters:
+        - `id`: Favorite ID (numeric)
+      - Request Body: JSON object with `name` field to update the favorite name.
+      - Response:
+        - Status Code: 200 (OK)
+        - Body: Updated favorite object containing `id`, updated `name`, and `contactId` fields.
+    
+    - Delete Favorite
+    
+      - Endpoint: `DELETE /favorites/:id`
+      - Description: Remove a favorite contact from the favorites list.
+      - Parameters:
+        - `id`: Favorite ID (numeric)
+      - Response:
+        - Status Code: 204 (No Content)
+    
+    This API specification document outlines the available routes, their endpoints, request/response details, and parameters for each route. 
+  <hr>
+
+**********************Test Cases**********************
+
+1. Test Case: Get All Contacts
+Endpoint: GET /contacts
+Expected Result: Response with all the contacts data
+
+2. Test Case: Get Contact by ID
+Endpoint: GET /contacts/:id
+Expected Result: Response with the contact details for the given ID
+
+3. Test Case: Create a New Contact
+Endpoint: POST /contacts
+Request Body: { "name": "John Doe", "email": "johndoe@example.com" }
+Expected Result: Response with the newly created contact details
+
+4. Test Case: Update Contact
+Endpoint: PUT /contacts/:id
+Request Body: { "name": "Updated Name", "email": "updatedemail@example.com" }
+Expected Result: Response with the updated contact details
+
+5. Test Case: Delete Contact
+Endpoint: DELETE /contacts/:id
+Expected Result: Response with a success message indicating the contact was deleted
+
+6. Test Case: Get All Messages
+Endpoint: GET /messages
+Expected Result: Response with all the messages data
+
+7. Test Case: Get Message by ID
+Endpoint: GET /messages/:id
+Expected Result: Response with the message details for the given ID
+
+8. Case: Create a New Message
+Endpoint: POST /messages
+Request Body: { "sender": "John Doe", "recipient": "Jane Smith", "content": "Hello Jane!" }
+Expected Result: Response with the newly created message details
+
+9. Test Case: Update Message
+Endpoint: PUT /messages/:id
+Request Body: { "content": "Updated message content" }
+Expected Result: Response with the updated message details
+
+10. Test Case: Delete Message
+Endpoint: DELETE /messages/:id
+Expected Result: Response with a success message indicating the message was deleted
+
+11. Test Case: Get All Favorites
+Endpoint: GET /favorites
+Expected Result: Response with all the favorites data
+
+12. Test Case: Get Favorite by ID
+Endpoint: GET /favorites/:id
+Expected Result: Response with the favorite details for the given ID
+
+13. Test Case: Get Favorite by Name
+Endpoint: GET /favorites/name/:name
+Expected Result: Response with the favorite details for the given name
+
+14. Test Case: Create a New Favorite
+Endpoint: POST /favorites
+Request Body: { "name": "Favorite Contact", "contactId": 1 }
+Expected Result: Response with the newly created favorite details
+
+15. Test Case: Update Favorite
+Endpoint: PATCH /favorites/:id
+Request Body: { "name": "Updated Favorite Name" }
+Expected Result: Response with the updated favorite details
+
+16. Test Case: Delete Favorite
+Endpoint: DELETE /favorites/:id
+Expected Result: Response with a success message indicating the favorite was deleted
+
+17. Test Case: Verify Status Code - Get All Contacts
+Endpoint: GET /contacts
+Expected Result: Response with a status code of 200 (OK)
+
+18. Test Case: Verify Status Code - Get Contact by ID
+Endpoint: GET /contacts/:id
+Expected Result: Response with a status code of 200 (OK) for an existing contact ID
+
+19. Test Case: Verify Status Code - Create a New Contact
+Endpoint: POST /contacts
+Request Body: { "name": "John Doe", "email": "johndoe@example.com" }
+Expected Result: Response with a status code of 201 (Created)
+
+20. Test Case: Verify Response Time - Get All Messages
+Endpoint: GET /messages
+Expected Result: Response time should be within an acceptable threshold (e.g., less than 500ms)
+
+21. Test Case: Verify Response Structure - Get Message by ID
+Endpoint: GET /messages/:id
+Expected Result: Response body should contain all the expected message properties (id, sender, recipient, content)
+
+22. Test Case: Verify Status Code - Update Message
+Endpoint: PUT /messages/:id
+Request Body: { "content": "Updated message content" }
+Expected Result: Response with a status code of 200 (OK) for a valid message ID
+
+23. Test Case: Verify Status Code - Delete Message
+Endpoint: DELETE /messages/:id
+Expected Result: Response with a status code of 204 (No Content) for a valid message ID
+
+24. Test Case: Verify Response Time - Get All Favorites
+Endpoint: GET /favorites
+Expected Result: Response time should be within an acceptable threshold (e.g., less than 500ms)
+
+25. Test Case: Verify Status Code - Get Favorite by ID
+Endpoint: GET /favorites/:id
+Expected Result: Response with a status code of 200 (OK) for an existing favorite ID
+
+26. Test Case: Verify Response Structure - Create a New Favorite
+Endpoint: POST /favorites
+Request Body: { "name": "Favorite Contact", "contactId": 1 }
+Expected Result: Response body should contain the newly created favorite details with all the expected properties (id, name, contactId)
+
+</pre>
+</body>
+</html>
