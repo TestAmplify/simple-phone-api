@@ -25,4 +25,4 @@ jobs:
         scp -o StrictHostKeyChecking=no -i private_key -r . $USER@$HOST:$TARGET_DIR
         ssh -o StrictHostKeyChecking=no -i private_key $USER@$HOST 'cd $TARGET_DIR && npm install && pm2 restart your_app_name_or_config_file'
         rm -f private_key
-#
+##
