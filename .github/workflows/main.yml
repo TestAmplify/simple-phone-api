@@ -1,0 +1,27 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main  # Or your default branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Deploy to EC2
+      env:
+        PRIVATE_KEY: ${{ secrets.DEPLOY_KEY }}
+        HOST: 54.91.234.67
+        USER: deployer
+        TARGET_DIR: /var/www/myapp
+      run: |
+        echo "$PRIVATE_KEY" > private_key
+        chmod 600 private_key
+        scp -o StrictHostKeyChecking=no -i private_key -r . $USER@$HOST:$TARGET_DIR
+        ssh -o StrictHostKeyChecking=no -i private_key $USER@$HOST 'cd $TARGET_DIR && npm install && pm2 restart your_app_name_or_config_file'
+        rm -f private_key
