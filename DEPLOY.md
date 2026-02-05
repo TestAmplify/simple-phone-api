@@ -100,7 +100,12 @@ To ensure the app restarts on server reboot:
 pm2 save
 pm2 startup
 ```
-(Run the command output by `pm2 startup` as instructed).
+**Important:** The `pm2 startup` command will generate a command starting with `sudo env PATH=...`. You **must copy and run that command** to finalize the setup.
+
+Example output to copy/paste:
+```bash
+sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u ubuntu --hp /home/ubuntu
+```
 
 ## Step 5: Verify Deployment
 - Visit `http://phone-api.testamplify.io/` in your browser.
