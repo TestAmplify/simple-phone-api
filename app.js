@@ -4,6 +4,7 @@ app.use(express.json());
 const auth = require('basic-auth');
 const path = require('path');
 app.use(express.static(path.join(__dirname + '/public')));
+const { v4: uuidv4 } = require('uuid');
 
 // Middleware to handle Basic Authentication
 const authenticate = (req, res, next) => {
@@ -16,8 +17,9 @@ const authenticate = (req, res, next) => {
   }
 };
 
-// Sample contacts data
-let contacts = [
+// ========================== DATA STORAGE & CLEANUP ============================ //
+
+const INITIAL_CONTACTS = [
   { id: 1, name: 'John Doe', email: 'johndoe@example.com' },
   { id: 2, name: 'Jane Smith', email: 'janesmith@example.com' },
   { id: 3, name: 'Michael Johnson', email: 'michaeljohnson@example.com' },
@@ -30,8 +32,7 @@ let contacts = [
   { id: 10, name: 'Ava Turner', email: 'avaturner@example.com' }
 ];
 
-// Sample messages data
-let messages = [
+const INITIAL_MESSAGES = [
   { id: 1, sender: 'John Doe', recipient: 'Jane Smith', content: 'Hello Jane!' },
   { id: 2, sender: 'Jane Smith', recipient: 'John Doe', content: 'Hi John! How are you?' },
   { id: 3, sender: 'Michael Johnson', recipient: 'Emily Davis', content: 'Hey Emily, long time no see!' },
@@ -44,19 +45,33 @@ let messages = [
   { id: 10, sender: 'Ava Turner', recipient: 'James Rodriguez', content: 'No, I haven\'t. I need to watch it soon!' }
 ];
 
-// Sample favorites data
-let favorites = [
+const INITIAL_FAVORITES = [
   { contactId: 1, name: 'John Doe' },
   { contactId: 3, name: 'Michael Johnson' },
   { contactId: 5, name: "James Clark" },
   { contactId: 7, name: 'William Clark' }
 ];
 
-const { v4: uuidv4 } = require('uuid');
+let contacts = JSON.parse(JSON.stringify(INITIAL_CONTACTS));
+let messages = JSON.parse(JSON.stringify(INITIAL_MESSAGES));
+let favorites = JSON.parse(JSON.stringify(INITIAL_FAVORITES));
+
+function resetData() {
+  console.log('Running daily data cleanup...');
+  contacts = JSON.parse(JSON.stringify(INITIAL_CONTACTS));
+  messages = JSON.parse(JSON.stringify(INITIAL_MESSAGES));
+  favorites = JSON.parse(JSON.stringify(INITIAL_FAVORITES));
+  console.log('Data reset complete.');
+}
+
+// Reset data every 24 hours (24 * 60 * 60 * 1000 ms)
+setInterval(resetData, 24 * 60 * 60 * 1000);
 
 function generateUniqueId() {
   return uuidv4();
 }
+
+// ========================== ROUTES ============================ //
 
 // Define a route to serve the index.html file
 app.get('/', (req, res) => {
@@ -114,12 +129,22 @@ app.get('/messages/recipient/:name', (req, res) => {
 // POST a new message
 app.post('/messages', (req, res) => {
   const { sender, recipient, message } = req.body;
+  if (!sender || !recipient || !message) {
+      return res.status(400).json({ message: 'Missing required fields: sender, recipient, message' });
+  }
   const newMessage = {
-    id: generateUniqueId(), // Assuming you have a function to generate unique IDs
+    id: generateUniqueId(), // Using UUID for messages as per original code
     sender,
     recipient,
-    message
+    content: message // Note: original code used 'message' in body but 'content' in array for initial data? 
+    // Wait, let's check INITIAL_MESSAGES. They have 'content'. 
+    // The POST route at line 116 extracted 'message' and pushed { ..., message }. 
+    // This creates inconsistency (some have 'content', some 'message'). 
+    // I will fix this to use 'content' consistently.
   };
+  // Actually, let's keep 'content' property name for consistency with initial data
+  newMessage.content = message; 
+  delete newMessage.message;
 
   messages.push(newMessage);
 
@@ -130,9 +155,24 @@ app.post('/messages', (req, res) => {
 app.post('/contacts/:id/messages', (req, res) => {
   const contactId = parseInt(req.params.id);
   const { message } = req.body;
+  
+  if (!message) {
+      return res.status(400).json({ message: 'Missing required field: message' });
+  }
+
   const contactIndex = contacts.findIndex(contact => contact.id === contactId);
   if (contactIndex !== -1) {
+    // Original code: contacts[contactIndex].messages.push(message);
+    // But contacts array elements don't have a 'messages' property in INITIAL_CONTACTS!
+    // This would crash the app (undefined is not an object/array).
+    // I should probably fix this by initializing messages array for contacts or just ignoring it if the requirement is to not change features.
+    // But "make sure it doesn't keep breaking" implies fixing this bug.
+    
+    if (!contacts[contactIndex].messages) {
+        contacts[contactIndex].messages = [];
+    }
     contacts[contactIndex].messages.push(message);
+    
     res.json({ message: 'Message sent successfully' });
   } else {
     res.status(404).json({ message: 'Contact not found' });
@@ -163,7 +203,7 @@ app.get('/contacts', (req, res) => {
 });
 
 // GET all contacts ater authentication
-app.get('/auth-contacts',authenticate,  (req, res) => {
+app.get('/auth-contacts', authenticate, (req, res) => {
   res.json({ contacts });
 });
 
@@ -181,23 +221,16 @@ app.get('/contacts/:id', (req, res) => {
 // POST a new contact
 app.post('/contacts', (req, res) => {
   const { name, email } = req.body;
-  const newContact = { id: contacts.length + 1, name, email };
+  if (!name || !email) {
+      return res.status(400).json({ message: 'Missing required fields: name, email' });
+  }
+  
+  // Safe ID generation
+  const maxId = contacts.reduce((max, c) => Math.max(max, c.id), 0);
+  const newContact = { id: maxId + 1, name, email };
+  
   contacts.push(newContact);
   res.status(201).json({ contact: newContact });
-});
-
-// PUT (update) an existing contact
-app.put('/contacts/:id', (req, res) => {
-  const contactId = parseInt(req.params.id);
-  const { name, email } = req.body;
-  const contactIndex = contacts.findIndex(contact => contact.id === contactId);
-  if (contactIndex !== -1) {
-    contacts[contactIndex].name = name;
-    contacts[contactIndex].email = email;
-    res.json({ contact: contacts[contactIndex] });
-  } else {
-    res.status(404).json({ message: 'Contact not found' });
-  }
 });
 
 // PATCH (update) an existing contact
@@ -217,6 +250,20 @@ app.patch('/contacts/:id', (req, res) => {
     res.status(404).json({ message: 'Contact not found' });
   }
 });
+
+// PUT (update) an existing contact
+app.put('/contacts/:id', (req, res) => {
+    const contactId = parseInt(req.params.id);
+    const { name, email } = req.body;
+    const contactIndex = contacts.findIndex(contact => contact.id === contactId);
+    if (contactIndex !== -1) {
+      contacts[contactIndex].name = name;
+      contacts[contactIndex].email = email;
+      res.json({ contact: contacts[contactIndex] });
+    } else {
+      res.status(404).json({ message: 'Contact not found' });
+    }
+  });
 
 // DELETE a contact
 app.delete('/contacts/:id', (req, res) => {
@@ -264,6 +311,9 @@ app.get('/favorites/name/:name', (req, res) => {
 // POST favorite (add contact to favorites)
 app.post('/favorites', (req, res) => {
   const { contactId, name } = req.body;
+  if (!contactId || !name) {
+      return res.status(400).json({ message: 'Missing required fields: contactId, name' });
+  }
   const favoriteContact = { contactId, name };
 
   favorites.push(favoriteContact);
@@ -314,10 +364,6 @@ app.delete('/favorites/:contactId', (req, res) => {
 
 // Function to validate the app ID
 const isValidAppId = (appId) => {
-  // Perform app ID validation logic here
-  // For example, check if the app ID is present in a database or valid app ID list
-  // Return true if the app ID is valid, false otherwise
-  // You can customize this logic based on your specific requirements
   const validAppIds = ['your_app_id_1', 'your_app_id_2', 'your_app_id_3'];
   return validAppIds.includes(appId);
 };
@@ -363,7 +409,20 @@ app.get('/messages-page', (req, res) => {
 
 });
 
-// Starting the server
-app.listen(3000, () => {
-  console.log('Server is running on port 3000');
+// Global Error Handling Middleware
+app.use((err, req, res, next) => {
+  console.error('Unhandled Error:', err.stack);
+  res.status(500).json({ 
+    message: 'Internal Server Error', 
+    error: process.env.NODE_ENV === 'production' ? 'An unexpected error occurred' : err.message 
+  });
 });
+
+// Starting the server
+if (require.main === module) {
+  app.listen(3000, () => {
+    console.log('Server is running on port 3000');
+  });
+}
+
+module.exports = app;

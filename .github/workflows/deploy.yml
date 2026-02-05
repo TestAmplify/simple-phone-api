@@ -23,6 +23,6 @@ jobs:
         echo "$PRIVATE_KEY" > private_key
         chmod 600 private_key
         scp -o StrictHostKeyChecking=no -i private_key -r . $USER@$HOST:$TARGET_DIR
-        ssh -o StrictHostKeyChecking=no -i private_key $USER@$HOST 'cd $TARGET_DIR && npm install && pm2 restart your_app_name_or_config_file'
+        ssh -o StrictHostKeyChecking=no -i private_key $USER@$HOST 'cd $TARGET_DIR && npm install && pm2 reload ecosystem.config.js --env production'
         rm -f private_key
 ##
